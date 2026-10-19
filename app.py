@@ -31,8 +31,7 @@ with st.container(border=True):
     step=1
 )
     for i in range(int(item_count)):
-        default = st.session_state.items[i] if i<len(st.session_state.items) else {'ชื่ออาหาร':'','ราคา':0.0,'ผู้รับผิดชอบ':'ทุกคน'}
-        st.markdown(f'**รายการที่ {i+1}**')
+        st.session_state["items"]
         c1,c2=st.columns([2,1])
         with c1: item_name=st.text_input('ชื่ออาหาร',value=default['ชื่ออาหาร'],key=f'item_{i}')
         with c2: price=st.number_input('ราคา (บาท)',min_value=0.0,value=float(default['ราคา']),step=5.0,key=f'price_{i}')
