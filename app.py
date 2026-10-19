@@ -23,8 +23,13 @@ with st.container(border=True):
 mode = st.radio('วิธีแบ่งค่าอาหาร', ['หารเท่ากัน', 'จ่ายตามรายการที่กิน'], horizontal=True)
 with st.container(border=True):
     st.subheader('🍜 รายการอาหาร')
-    item_count = st.number_input('จำนวนรายการ', min_value=1, max_value=60, value=len(st.session_state.items), step=1)
-    items=[]
+    item_count = st.number_input(
+    "จำนวนรายการอาหาร",
+    min_value=1,
+    max_value=100,
+    value=1,
+    step=1
+)
     for i in range(int(item_count)):
         default = st.session_state.items[i] if i<len(st.session_state.items) else {'ชื่ออาหาร':'','ราคา':0.0,'ผู้รับผิดชอบ':'ทุกคน'}
         st.markdown(f'**รายการที่ {i+1}**')
