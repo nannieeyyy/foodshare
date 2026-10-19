@@ -8,8 +8,23 @@ st.caption('หารค่าอาหารกับเพื่อน ง่�
 
 if 'people' not in st.session_state:
     st.session_state.people = ['นันนี่', 'เพื่อน']
-if 'items' not in st.session_state:
+if "people" not in st.session_state:
+    st.session_state["people"] = ["นันนี่", "เพื่อน"]
+
 if "items" not in st.session_state:
+    st.session_state["items"] = [
+        {
+            "ชื่ออาหาร": "ข้าวผัด",
+            "ราคา": 60.0,
+            "ผู้รับผิดชอบ": "ทุกคน"
+        },
+        {
+            "ชื่ออาหาร": "น้ำดื่ม",
+            "ราคา": 30.0,
+            "ผู้รับผิดชอบ": "ทุกคน"
+        }
+    ]
+
     st.session_state["items"] = [
         {"ชื่ออาหาร": "ข้าวผัด", "ราคา": 60.0, "ผู้รับผิดชอบ": "ทุกคน"},
         {"ชื่ออาหาร": "น้ำดื่ม", "ราคา": 30.0, "ผู้รับผิดชอบ": "ทุกคน"}
