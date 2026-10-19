@@ -1,179 +1,127 @@
-import streamlit as st
-from decimal import Decimal, ROUND_HALF_UP
+    remainder = total_cents - sum(parts)
+    order = sorted(range(len(raw)), key=lambda i: (raw[i] - parts[i], -i), reverse=True)
+    for i in order[:remainder]:
+        parts[i] += 1
+    return parts
 
-st.set_page_config(page_title='FoodShare 🍽️', page_icon='🍽️', layout='centered')
-st.markdown('''<style>.stApp{background:#fff8fb}h1,h2,h3{color:#9d315d}.stButton>button[kind="primary"]{background:#db548d;border:0;border-radius:12px}.block-container{max-width:820px;padding-top:2rem}</style>''', unsafe_allow_html=True)
-st.title('🍽️ FoodShare')
-st.caption('หารค่าอาหารกับเพื่อน ง่าย ๆ ในหน้าเดียว 💗')
 
-if 'people' not in st.session_state:
-    st.session_state.people = ['นันนี่', 'เพื่อน']
-if "people" not in st.session_state:
-    st.session_state["people"] = ["นันนี่", "เพื่อน"]
-
-if "items" not in st.session_state:
-    st.session_state["items"] = [
-        {
-            "ชื่ออาหาร": "ข้าวผัด",
-            "ราคา": 60.0,
-            "ผู้รับผิดชอบ": "ทุกคน"
-        },
-        {
-            "ชื่ออาหาร": "น้ำดื่ม",
-            "ราคา": 30.0,
-            "ผู้รับผิดชอบ": "ทุกคน"
-        }
-    ]
-
-    st.session_state["items"] = [
-        {"ชื่ออาหาร": "ข้าวผัด", "ราคา": 60.0, "ผู้รับผิดชอบ": "ทุกคน"},
-        {"ชื่ออาหาร": "น้ำดื่ม", "ราคา": 30.0, "ผู้รับผิดชอบ": "ทุกคน"}
-    ]
+st.title("🍽️ FoodShare")
+st.caption("แชร์ค่าอาหารกับเพื่อน ง่าย สวย และคำนวณได้ในหน้าเดียว 💗")
 
 with st.container(border=True):
-    st.subheader('👥 สมาชิก')
-    n = st.number_input('จำนวนคน', min_value=1, max_value=30, value=len(st.session_state.people), step=1)
-    names=[]
-    for i in range(int(n)):
-        default = st.session_state.people[i] if i < len(st.session_state.people) else f'คนที่ {i+1}'
-        names.append(st.text_input(f'ชื่อคนที่ {i+1}',value=default,key=f'name_{i}').strip() or f'คนที่ {i+1}')
-    st.session_state.people=names
+    st.subheader("👥 สมาชิก")
+    people_count = st.number_input("จำนวนคน", min_value=1, max_value=30, value=2, step=1)
+    names = []
+    for i in range(int(people_count)):
+        name = st.text_input(f"ชื่อคนที่ {i + 1}", value=f"คนที่ {i + 1}", key=f"member_{i}").strip()
+        names.append(name or f"คนที่ {i + 1}")
+    if len(set(names)) != len(names):
+        st.error("ชื่อสมาชิกต้องไม่ซ้ำกัน กรุณาแก้ไขชื่อก่อนคำนวณ")
 
-mode = st.radio('วิธีแบ่งค่าอาหาร', ['หารเท่ากัน', 'จ่ายตามรายการที่กิน'], horizontal=True)
+mode = st.radio("วิธีแบ่งค่าอาหาร", ["หารเท่ากัน", "จ่ายตามรายการที่กิน"], horizontal=True)
+
 with st.container(border=True):
-    st.subheader('🍜 รายการอาหาร')
-    item_count = st.number_input(
-    "จำนวนรายการอาหาร",
-    min_value=1,
-    max_value=100,
-    value=1,
-    step=1
-)
-   
+    st.subheader("🍜 รายการอาหาร")
+    item_count = st.number_input("จำนวนรายการอาหาร", min_value=1, max_value=100, value=2, step=1)
     items = []
-
     for i in range(int(item_count)):
-        if i < len(st.session_state["items"]):
-            default = st.session_state["items"][i]
-        else:
-            default = {
-                "ชื่ออาหาร": "",
-                "ราคา": 0.0,
-                "ผู้รับผิดชอบ": "ทุกคน"
-            }
-
-        c1, c2 = st.columns([2, 1])
-
-        with c1:
-            item_name = st.text_input(
-                f"ชื่ออาหารรายการที่ {i+1}",
-                value=str(default["ชื่ออาหาร"]),
-                key=f"item_{i}"
-            )
-
-        with c2:
-            price = st.number_input(
-                f"ราคาอาหารรายการที่ {i+1}",
-                min_value=0.0,
-                value=float(default["ราคา"]),
-                step=5.0,
-                key=f"price_{i}"
-            )
-
-        owner = "ทุกคน"
-
+        st.markdown(f"**รายการที่ {i + 1}**")
+        col1, col2 = st.columns([2, 1])
+        with col1:
+            item_name = st.text_input("ชื่ออาหาร", value="ข้าวผัด" if i == 0 else "น้ำดื่ม" if i == 1 else "", key=f"food_{i}")
+        with col2:
+            price = st.number_input("ราคา (บาท)", min_value=0.0, max_value=1000000.0, value=60.0 if i == 0 else 30.0 if i == 1 else 0.0, step=5.0, format="%.2f", key=f"price_{i}")
         if mode == "จ่ายตามรายการที่กิน":
-            opts = ["ทุกคน"] + names
-            old = default.get("ผู้รับผิดชอบ", "ทุกคน")
-
-            owner = st.selectbox(
-                f"ใครเป็นคนกินรายการที่ {i+1}",
-                opts,
-                index=opts.index(old) if old in opts else 0,
-                key=f"owner_{i}"
-            )
-
-        items.append({
-            "ชื่ออาหาร": item_name,
-            "ราคา": price,
-            "ผู้รับผิดชอบ": owner
-        })
-
-    st.session_state["items"] = items
-
-        c1,c2=st.columns([2,1])
-        with c1: item_name=st.text_input('ชื่ออาหาร',value=default['ชื่ออาหาร'],key=f'item_{i}')
-        with c2: price=st.number_input('ราคา (บาท)',min_value=0.0,value=float(default['ราคา']),step=5.0,key=f'price_{i}')
-        owner='ทุกคน'
-        if mode=='จ่ายตามรายการที่กิน':
-            opts=['ทุกคน']+names
-            old=default.get('ผู้รับผิดชอบ','ทุกคน')
-            owner=st.selectbox('ใครเป็นคนกินรายการนี้?',opts,index=opts.index(old) if old in opts else 0,key=f'owner_{i}')
-        items.append({'ชื่ออาหาร':item_name,'ราคา':price,'ผู้รับผิดชอบ':owner})
-    st.session_state.items=items
+            eaters = st.multiselect("ใครกินรายการนี้? (เลือกได้หลายคน)", options=list(range(len(names))), default=list(range(len(names))), format_func=lambda idx: names[idx], key=f"eaters_{i}")
+        else:
+            eaters = list(range(len(names)))
+        items.append({"name": item_name.strip() or f"อาหารที่ {i + 1}", "price": Decimal(str(price)), "eaters": eaters})
 
 with st.container(border=True):
-    st.subheader('🧾 ส่วนลดและค่าบริการ')
-    discount=st.number_input('ส่วนลด (%)',min_value=0.0,max_value=100.0,value=0.0,step=1.0)
-    service_on=st.checkbox('คิด Service Charge 10%')
-    vat_on=st.checkbox('คิด VAT 7%')
-    tip=st.number_input('ทิปพนักงาน (บาท)',min_value=0.0,value=0.0,step=10.0)
+    st.subheader("🏷️ ส่วนลดและค่าบริการ")
+    discount_percent = st.number_input("ส่วนลด (%)", min_value=0.0, max_value=100.0, value=0.0, step=1.0)
+    service_enabled = st.checkbox("คิด Service Charge 10%", value=False)
+    vat_enabled = st.checkbox("คิด VAT 7%", value=False)
+    tip = st.number_input("ทิปพนักงาน (บาท)", min_value=0.0, max_value=1000000.0, value=0.0, step=5.0)
+    st.caption("คำนวณค่าบริการจากยอดหลังส่วนลด และ VAT จากยอดหลังส่วนลดรวมค่าบริการ")
 
-D=lambda x: Decimal(str(x))
-cent=lambda x: x.quantize(Decimal('0.01'),rounding=ROUND_HALF_UP)
-food=sum((D(it['ราคา']) for it in items),Decimal('0'))
-discount_amount=cent(food*D(discount)/100)
-base=food-discount_amount
-service=cent(base*Decimal('0.10')) if service_on else Decimal('0')
-vat=cent((base+service)*Decimal('0.07')) if vat_on else Decimal('0')
-total=base+service+vat+cent(D(tip))
+if st.button("🧮 คำนวณค่าอาหาร", type="primary", use_container_width=True):
+    if len(set(names)) != len(names):
+        st.error("กรุณาแก้ชื่อสมาชิกที่ซ้ำกัน")
+    elif mode == "จ่ายตามรายการที่กิน" and any(not item["eaters"] and item["price"] > 0 for item in items):
+        st.error("รายการอาหารที่มีราคามากกว่า 0 บาท ต้องเลือกผู้รับผิดชอบอย่างน้อย 1 คน")
+    else:
+        food_total = sum((item["price"] for item in items), Decimal("0"))
+        discount = food_total * Decimal(str(discount_percent)) / Decimal("100")
+        discounted = food_total - discount
+        service = discounted * Decimal("0.10") if service_enabled else Decimal("0")
+        vat = (discounted + service) * Decimal("0.07") if vat_enabled else Decimal("0")
+        total = discounted + service + vat + Decimal(str(tip))
+        total_satang = cents(total)
 
-weights={name:Decimal('0') for name in names}
-if mode=='หารเท่ากัน':
-    for name in names: weights[name]=Decimal('1')
-else:
-    for it in items:
-        price=D(it['ราคา'])
-        if it['ผู้รับผิดชอบ']=='ทุกคน':
-            for name in names: weights[name]+=price/len(names)
-        else: weights[it['ผู้รับผิดชอบ']]+=price
-    if sum(weights.values())==0:
-        for name in names: weights[name]=Decimal('1')
+        if mode == "หารเท่ากัน":
+            weights = [Decimal("1")] * len(names)
+        else:
+            weights = [Decimal("0")] * len(names)
+            for item in items:
+                if item["eaters"]:
+                    share = item["price"] / Decimal(len(item["eaters"]))
+                    for person_index in item["eaters"]:
+                        weights[person_index] += share
+            # If no food was ordered, share any tip equally.
+            if sum(weights) == 0:
+                weights = [Decimal("1")] * len(names)
 
-# Allocate whole satang so the displayed amounts sum exactly to the bill.
-unit_total=int(total*100)
-weight_total=sum(weights.values())
-raw=[Decimal(unit_total)*weights[name]/weight_total for name in names]
-units=[int(x) for x in raw]
-left=unit_total-sum(units)
-order=sorted(range(len(names)),key=lambda i:(-(raw[i]-units[i]),i))
-for i in order[:left]: units[i]+=1
-payments={name:Decimal(units[i])/100 for i,name in enumerate(names)}
+        shares_satang = allocate(total_satang, weights)
+        st.session_state["receipt"] = {
+            "names": names[:],
+            "items": [(item["name"], baht(item["price"])) for item in items],
+            "food": baht(food_total),
+            "discount": baht(discount),
+            "service": baht(service),
+            "vat": baht(vat),
+            "tip": baht(tip),
+            "total": baht(Decimal(total_satang) / 100),
+            "shares": shares_satang,
+            "mode": mode,
+        }
 
-if st.button('✨ คำนวณค่าอาหาร',type='primary',use_container_width=True):
-    st.session_state.show_results=True
-if st.session_state.get('show_results',False):
-    st.subheader('🎉 สรุปค่าอาหาร')
-    a,b=st.columns(2)
-    a.metric('ยอดรวมทั้งหมด',f'{total:,.2f} บาท')
-    b.metric('จำนวนสมาชิก',f'{len(names)} คน')
-    st.write(f'ค่าอาหาร: {food:,.2f} บาท')
-    st.write(f'ส่วนลด: −{discount_amount:,.2f} บาท')
-    st.write(f'Service Charge: {service:,.2f} บาท')
-    st.write(f'VAT: {vat:,.2f} บาท')
-    st.write(f'ทิป: {cent(D(tip)):,.2f} บาท')
-    st.divider()
-    st.subheader('💸 แต่ละคนจ่าย')
-    for name,amount in payments.items():
-        st.write(f'**{name}** — {amount:,.2f} บาท')
-    st.subheader('💵 ตรวจสอบเงินทอน')
-    payer=st.selectbox('เลือกผู้จ่าย',names)
-    cash=st.number_input('จำนวนเงินที่จ่าย (บาท)',min_value=0.0,value=0.0,step=10.0)
-    difference=cent(D(cash))-payments[payer]
-    if difference>0: st.success(f'เงินทอน {difference:,.2f} บาท')
-    elif difference<0: st.warning(f'เงินยังขาด {-difference:,.2f} บาท')
-    else: st.success('จ่ายพอดี 🎉')
-    summary='FoodShare 🍽️\n'+f'ยอดรวม {total:,.2f} บาท\n'+'\n'.join(f'{name}: {amount:,.2f} บาท' for name,amount in payments.items())
-    st.code(summary,language=None)
-    st.caption('คัดลอกข้อความด้านบนเพื่อส่งให้เพื่อนในกลุ่มได้เลย')
-    st.caption('หมายเหตุ: ส่วนลดหักจากค่าอาหารก่อนคิดค่าบริการและ VAT; ค่าใช้จ่ายเพิ่มเติมแบ่งตามสัดส่วนรายการอาหาร')
+if "receipt" in st.session_state:
+    receipt = st.session_state["receipt"]
+    st.subheader("🧾 สรุปค่าอาหาร")
+    for item_name, price in receipt["items"]:
+        st.write(f"• {item_name} — {price} บาท")
+    col1, col2 = st.columns(2)
+    with col1:
+        st.metric("ค่าอาหาร", f'{receipt["food"]} ฿')
+        st.metric("ส่วนลด", f'{receipt["discount"]} ฿')
+        st.metric("Service Charge", f'{receipt["service"]} ฿')
+    with col2:
+        st.metric("VAT", f'{receipt["vat"]} ฿')
+        st.metric("ทิป", f'{receipt["tip"]} ฿')
+        st.metric("รวมทั้งหมด", f'{receipt["total"]} ฿')
+
+    st.subheader("💸 แต่ละคนต้องจ่าย")
+    for i, name in enumerate(receipt["names"]):
+        st.success(f'{name}: {receipt["shares"][i] / 100:,.2f} บาท')
+
+    st.subheader("💵 ตรวจสอบเงินทอน")
+    for i, name in enumerate(receipt["names"]):
+        paid = st.number_input(f"{name} จ่ายมา (บาท)", min_value=0.0, max_value=10000000.0, value=0.0, step=10.0, key=f"paid_{i}")
+        change = cents(paid) - receipt["shares"][i]
+        if change > 0:
+            st.info(f"{name} ได้เงินทอน {change / 100:,.2f} บาท")
+        elif change < 0:
+            st.warning(f"{name} ยังขาด {-change / 100:,.2f} บาท")
+        else:
+            st.success(f"{name} จ่ายพอดีแล้ว")
+
+    lines = ["FoodShare - สรุปค่าอาหาร", "=" * 32]
+    lines += [f"{name}: {price} บาท" for name, price in receipt["items"]]
+    lines += ["-" * 32, f'ค่าอาหาร: {receipt["food"]} บาท', f'ส่วนลด: {receipt["discount"]} บาท', f'Service Charge: {receipt["service"]} บาท', f'VAT: {receipt["vat"]} บาท', f'ทิป: {receipt["tip"]} บาท', f'ยอดรวม: {receipt["total"]} บาท', "", "ยอดที่ต้องจ่าย"]
+    lines += [f"{name}: {satang / 100:,.2f} บาท" for name, satang in zip(receipt["names"], receipt["shares"])]
+    st.download_button("📥 ดาวน์โหลดสรุปค่าอาหาร", data="\n".join(lines).encode("utf-8-sig"), file_name="foodshare_receipt.txt", mime="text/plain", use_container_width=True)
+    st.caption("หากแก้ไขข้อมูลด้านบน ให้กดคำนวณค่าอาหารอีกครั้งเพื่ออัปเดตใบสรุป")
+
+st.divider()
+st.caption("Made with 💗 Python & Streamlit | FoodShare")
