@@ -5,7 +5,7 @@ st.set_page_config(page_title="FoodShare | หารค่าอาหาร", p
 
 st.markdown("""
 <style>
-.stApp {background: #fff8fb;}
+.stApp {background-color: #FFF5F8 !important;color: #333333 !important;}
 .block-container {max-width: 850px; padding-top: 2rem;}
 h1, h2, h3 {color: #9b3361;}
 div.stButton > button[kind="primary"] {background: #df568e; border-color: #df568e;}
