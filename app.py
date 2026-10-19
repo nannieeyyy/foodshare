@@ -9,7 +9,11 @@ st.caption('หารค่าอาหารกับเพื่อน ง่�
 if 'people' not in st.session_state:
     st.session_state.people = ['นันนี่', 'เพื่อน']
 if 'items' not in st.session_state:
-    st.session_state.items = [{'ชื่ออาหาร':'ข้าวผัด','ราคา':60.0,'ผู้รับผิดชอบ':'ทุกคน'}, {'ชื่ออาหาร':'น้ำดื่ม','ราคา':30.0,'ผู้รับผิดชอบ':'ทุกคน'}]
+if "items" not in st.session_state:
+    st.session_state["items"] = [
+        {"ชื่ออาหาร": "ข้าวผัด", "ราคา": 60.0, "ผู้รับผิดชอบ": "ทุกคน"},
+        {"ชื่ออาหาร": "น้ำดื่ม", "ราคา": 30.0, "ผู้รับผิดชอบ": "ทุกคน"}
+    ]
 
 with st.container(border=True):
     st.subheader('👥 สมาชิก')
@@ -30,8 +34,58 @@ with st.container(border=True):
     value=1,
     step=1
 )
+   
+    items = []
+
     for i in range(int(item_count)):
-        st.session_state["items"]
+        if i < len(st.session_state["items"]):
+            default = st.session_state["items"][i]
+        else:
+            default = {
+                "ชื่ออาหาร": "",
+                "ราคา": 0.0,
+                "ผู้รับผิดชอบ": "ทุกคน"
+            }
+
+        c1, c2 = st.columns([2, 1])
+
+        with c1:
+            item_name = st.text_input(
+                f"ชื่ออาหารรายการที่ {i+1}",
+                value=str(default["ชื่ออาหาร"]),
+                key=f"item_{i}"
+            )
+
+        with c2:
+            price = st.number_input(
+                f"ราคาอาหารรายการที่ {i+1}",
+                min_value=0.0,
+                value=float(default["ราคา"]),
+                step=5.0,
+                key=f"price_{i}"
+            )
+
+        owner = "ทุกคน"
+
+        if mode == "จ่ายตามรายการที่กิน":
+            opts = ["ทุกคน"] + names
+            old = default.get("ผู้รับผิดชอบ", "ทุกคน")
+
+            owner = st.selectbox(
+                f"ใครเป็นคนกินรายการที่ {i+1}",
+                opts,
+                index=opts.index(old) if old in opts else 0,
+                key=f"owner_{i}"
+            )
+
+        items.append({
+            "ชื่ออาหาร": item_name,
+            "ราคา": price,
+            "ผู้รับผิดชอบ": owner
+        })
+
+    st.session_state["items"] = items
+
         c1,c2=st.columns([2,1])
         with c1: item_name=st.text_input('ชื่ออาหาร',value=default['ชื่ออาหาร'],key=f'item_{i}')
         with c2: price=st.number_input('ราคา (บาท)',min_value=0.0,value=float(default['ราคา']),step=5.0,key=f'price_{i}')
